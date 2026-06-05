@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { products } from '../data/products';
-import { ShoppingBag } from 'lucide-react';
+import { ShoppingBag, Camera } from 'lucide-react';
+import VirtualTryOnModal from './VirtualTryOnModal';
 
 export default function Shop() {
+  const [tryOnProduct, setTryOnProduct] = useState(null);
   return (
     <section
       id="shop"
@@ -61,20 +63,36 @@ export default function Shop() {
                 </p>
               </div>
 
-              {/* Call to Action Button */}
-              <a
-                href={product.meeshoLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full flex items-center justify-center space-x-2 py-3.5 bg-dark-grey text-cream text-xs uppercase tracking-widest hover:bg-gold hover:text-charcoal transition-all duration-300 font-semibold border border-dark-grey hover:border-gold"
-              >
-                <ShoppingBag size={14} />
-                <span>Buy on Meesho</span>
-              </a>
+              {/* Call to Action Buttons */}
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={() => setTryOnProduct(product)}
+                  className="w-full flex items-center justify-center space-x-2 py-3 border border-gold text-dark-grey text-xs uppercase tracking-widest hover:bg-gold hover:text-charcoal transition-all duration-300 font-semibold cursor-pointer"
+                >
+                  <Camera size={14} />
+                  <span>Try It Live</span>
+                </button>
+                <a
+                  href={product.meeshoLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center justify-center space-x-2 py-3 bg-dark-grey text-cream text-xs uppercase tracking-widest hover:bg-gold hover:text-charcoal transition-all duration-300 font-semibold border border-dark-grey hover:border-gold"
+                >
+                  <ShoppingBag size={14} />
+                  <span>Buy on Meesho</span>
+                </a>
+              </div>
             </motion.div>
           ))}
         </div>
       </div>
+
+      {/* AI-Powered Virtual Try-On Modal */}
+      <VirtualTryOnModal
+        isOpen={tryOnProduct !== null}
+        onClose={() => setTryOnProduct(null)}
+        product={tryOnProduct}
+      />
     </section>
   );
 }
