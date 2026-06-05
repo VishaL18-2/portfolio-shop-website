@@ -161,13 +161,28 @@ export default function VirtualTryOnModal({ isOpen, onClose, product }) {
     };
   }, [isOpen]);
 
-  // Phase 2: Compile the matching transparent SVG try-on vector asset based on product keywords
+  // Phase 2: Load the transparent try-on image (custom PNG if provided, otherwise fallback to SVG template)
   useEffect(() => {
     if (!product || !isOpen) return;
 
     setOverlayImg(null);
     setErrorMsg('');
 
+    // If you have specified a custom transparent PNG for this product, load it directly!
+    if (product.tryOnImage) {
+      const img = new Image();
+      img.src = product.tryOnImage;
+      img.onload = () => {
+        setOverlayImg(img);
+      };
+      img.onerror = () => {
+        console.error("Failed to load custom transparent PNG Try-On image:", product.tryOnImage);
+        setErrorMsg("Failed to load product preview image.");
+      };
+      return;
+    }
+
+    // Fallback: Compile the matching transparent SVG try-on vector asset based on product keywords
     const titleLower = (product.title || "").toLowerCase();
     let selectedSvg = goldChokerSvg; // Default gold necklace
 
