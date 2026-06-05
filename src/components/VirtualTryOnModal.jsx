@@ -2,6 +2,98 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Camera, RefreshCw } from 'lucide-react';
 
+// Premium transparent vector overlays for try-on simulation
+const jhumkaSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 130" width="100" height="130">
+  <!-- Top Stud -->
+  <circle cx="50" cy="25" r="14" fill="#E5C185" stroke="#C5A880" stroke-width="1.5"/>
+  <circle cx="50" cy="25" r="6" fill="#A83232"/>
+  <circle cx="50" cy="15" r="2.5" fill="#FFFFFF"/>
+  <circle cx="59" cy="18" r="2.5" fill="#FFFFFF"/>
+  <circle cx="62" cy="25" r="2.5" fill="#FFFFFF"/>
+  <circle cx="59" cy="32" r="2.5" fill="#FFFFFF"/>
+  <circle cx="50" cy="35" r="2.5" fill="#FFFFFF"/>
+  <circle cx="41" cy="32" r="2.5" fill="#FFFFFF"/>
+  <circle cx="38" cy="25" r="2.5" fill="#FFFFFF"/>
+  <circle cx="41" cy="18" r="2.5" fill="#FFFFFF"/>
+  
+  <!-- Connecting Ring -->
+  <circle cx="50" cy="44" r="5" fill="none" stroke="#C5A880" stroke-width="2"/>
+  
+  <!-- Jhumka Main Dome -->
+  <path d="M20,80 C20,50 80,50 80,80 Z" fill="#F3EFE9" stroke="#C5A880" stroke-width="2"/>
+  <path d="M23,75 C25,58 75,58 77,75" fill="none" stroke="#C5A880" stroke-width="1" stroke-dasharray="3,3"/>
+  <line x1="50" y1="52" x2="50" y2="58" stroke="#C5A880" stroke-width="2"/>
+  
+  <!-- Hanging Little beads -->
+  <line x1="25" y1="80" x2="25" y2="92" stroke="#C5A880" stroke-width="1.5"/>
+  <circle cx="25" cy="94" r="3.5" fill="#FFFFFF" stroke="#C5A880" stroke-width="0.5"/>
+  <line x1="33" y1="80" x2="33" y2="94" stroke="#C5A880" stroke-width="1.5"/>
+  <circle cx="33" cy="96" r="3.5" fill="#FFFFFF" stroke="#C5A880" stroke-width="0.5"/>
+  <line x1="41" y1="80" x2="41" y2="96" stroke="#C5A880" stroke-width="1.5"/>
+  <circle cx="41" cy="98" r="3.5" fill="#A83232" stroke="#C5A880" stroke-width="0.5"/>
+  <line x1="50" y1="80" x2="50" y2="98" stroke="#C5A880" stroke-width="1.5"/>
+  <circle cx="50" cy="100" r="4.5" fill="#FFFFFF" stroke="#C5A880" stroke-width="0.5"/>
+  <line x1="59" y1="80" x2="59" y2="96" stroke="#C5A880" stroke-width="1.5"/>
+  <circle cx="59" cy="98" r="3.5" fill="#A83232" stroke="#C5A880" stroke-width="0.5"/>
+  <line x1="67" y1="80" x2="67" y2="94" stroke="#C5A880" stroke-width="1.5"/>
+  <circle cx="67" cy="96" r="3.5" fill="#FFFFFF" stroke="#C5A880" stroke-width="0.5"/>
+  <line x1="75" y1="80" x2="75" y2="92" stroke="#C5A880" stroke-width="1.5"/>
+  <circle cx="75" cy="94" r="3.5" fill="#FFFFFF" stroke="#C5A880" stroke-width="0.5"/>
+</svg>`;
+
+const goldChokerSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 160" width="300" height="160">
+  <!-- Main Thick Gold Collar Band -->
+  <path d="M40,30 Q150,130 260,30" fill="none" stroke="#C5A880" stroke-width="10" stroke-linecap="round"/>
+  <!-- Inner Glistening Yellow Gold Band -->
+  <path d="M43,30 Q150,124 257,30" fill="none" stroke="#E5C185" stroke-width="4" stroke-linecap="round"/>
+  
+  <!-- Kundan Gemstones along the collar -->
+  <circle cx="65" cy="40" r="4" fill="#FFFFFF" stroke="#A98C63" stroke-width="1"/>
+  <circle cx="85" cy="51" r="4.5" fill="#902C2C" stroke="#A98C63" stroke-width="1"/>
+  <circle cx="105" cy="62" r="4" fill="#FFFFFF" stroke="#A98C63" stroke-width="1"/>
+  <circle cx="125" cy="71" r="4.5" fill="#1C5E3E" stroke="#A98C63" stroke-width="1"/>
+  <circle cx="145" cy="77" r="4" fill="#FFFFFF" stroke="#A98C63" stroke-width="1"/>
+  <circle cx="150" cy="79" r="5" fill="#902C2C" stroke="#A98C63" stroke-width="1.5"/>
+  <circle cx="155" cy="77" r="4" fill="#FFFFFF" stroke="#A98C63" stroke-width="1"/>
+  <circle cx="175" cy="71" r="4.5" fill="#1C5E3E" stroke="#A98C63" stroke-width="1"/>
+  <circle cx="195" cy="62" r="4" fill="#FFFFFF" stroke="#A98C63" stroke-width="1"/>
+  <circle cx="215" cy="51" r="4.5" fill="#902C2C" stroke="#A98C63" stroke-width="1"/>
+  <circle cx="235" cy="40" r="4" fill="#FFFFFF" stroke="#A98C63" stroke-width="1"/>
+
+  <!-- Hanging Gold Beads and Red Pendants -->
+  <line x1="85" y1="56" x2="85" y2="70" stroke="#A98C63" stroke-width="1.5"/>
+  <path d="M82,70 L88,70 L85,82 Z" fill="#902C2C" stroke="#A98C63" stroke-width="1"/>
+
+  <line x1="115" y1="67" x2="115" y2="82" stroke="#A98C63" stroke-width="1.5"/>
+  <path d="M112,82 L118,82 L115,96 Z" fill="#1C5E3E" stroke="#A98C63" stroke-width="1"/>
+
+  <!-- Center Big Pendant -->
+  <line x1="150" y1="84" x2="150" y2="105" stroke="#A98C63" stroke-width="2.5"/>
+  <circle cx="150" cy="107" r="6" fill="#FFFFFF" stroke="#A98C63" stroke-width="1.5"/>
+  <path d="M142,113 L158,113 L150,135 Z" fill="#902C2C" stroke="#A98C63" stroke-width="1.5"/>
+
+  <!-- Right Side Hangers -->
+  <line x1="185" y1="67" x2="185" y2="82" stroke="#A98C63" stroke-width="1.5"/>
+  <path d="M182,82 L188,82 L185,96 Z" fill="#1C5E3E" stroke="#A98C63" stroke-width="1"/>
+
+  <line x1="215" y1="56" x2="215" y2="70" stroke="#A98C63" stroke-width="1.5"/>
+  <path d="M212,70 L218,70 L215,82 Z" fill="#902C2C" stroke="#A98C63" stroke-width="1"/>
+</svg>`;
+
+const pendantChainSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 200" width="300" height="200">
+  <!-- Delicate Silver Chain -->
+  <path d="M50,20 L145,145 Q150,150 155,145 L250,20" fill="none" stroke="#D3D3D3" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Highlight inner chain path -->
+  <path d="M52,20 L145,143 Q150,147 155,143 L248,20" fill="none" stroke="#FFFFFF" stroke-width="0.8" stroke-linecap="round" stroke-dasharray="2,2"/>
+  
+  <!-- Pendant Connector -->
+  <rect x="147" y="142" width="6" height="10" rx="2" fill="#A98C63" stroke="#D3D3D3" stroke-width="1"/>
+
+  <!-- Teardrop Gemstone Pendant -->
+  <path d="M150,152 C142,163 135,178 150,192 C165,178 158,163 150,152 Z" fill="#902C2C" stroke="#A98C63" stroke-width="1.5"/>
+  <circle cx="150" cy="172" r="3.5" fill="#FFFFFF"/>
+</svg>`;
+
 export default function VirtualTryOnModal({ isOpen, onClose, product }) {
   const [scriptsLoaded, setScriptsLoaded] = useState(false);
   const [loadingModel, setLoadingModel] = useState(true);
@@ -11,7 +103,7 @@ export default function VirtualTryOnModal({ isOpen, onClose, product }) {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
 
-  // Phase 1: Load MediaPipe scripts from Google CDNs dynamically when modal opens
+  // Phase 1: Load MediaPipe scripts dynamically when modal opens
   useEffect(() => {
     if (!isOpen) return;
     
@@ -19,7 +111,6 @@ export default function VirtualTryOnModal({ isOpen, onClose, product }) {
     
     const loadScript = (src) => {
       return new Promise((resolve, reject) => {
-        // Check if script is already present
         const existingScript = document.querySelector(`script[src="${src}"]`);
         if (existingScript) {
           if (existingScript.dataset.loaded === 'true') {
@@ -70,19 +161,30 @@ export default function VirtualTryOnModal({ isOpen, onClose, product }) {
     };
   }, [isOpen]);
 
-  // Phase 2: Pre-load the product's image onto an HTMLImageElement for canvas drawing
+  // Phase 2: Compile the matching transparent SVG try-on vector asset based on product keywords
   useEffect(() => {
     if (!product || !isOpen) return;
 
     setOverlayImg(null);
+    setErrorMsg('');
+
+    const titleLower = (product.title || "").toLowerCase();
+    let selectedSvg = goldChokerSvg; // Default gold necklace
+
+    if (titleLower.includes('earring') || titleLower.includes('jhumka') || titleLower.includes('stud') || titleLower.includes('dangler') || titleLower.includes('combo')) {
+      selectedSvg = jhumkaSvg;
+    } else if (titleLower.includes('pendant') || titleLower.includes('chain') || titleLower.includes('locket')) {
+      selectedSvg = pendantChainSvg;
+    }
+
     const img = new Image();
-    img.src = product.image;
+    img.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(selectedSvg);
     img.onload = () => {
       setOverlayImg(img);
     };
     img.onerror = () => {
-      console.error("Failed to load overlay image:", product.image);
-      setErrorMsg("Failed to load product preview image.");
+      console.error("Failed to compile SVG Try-On asset.");
+      setErrorMsg("Failed to initialize virtual preview asset.");
     };
   }, [product, isOpen]);
 
