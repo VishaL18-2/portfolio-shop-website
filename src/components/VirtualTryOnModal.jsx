@@ -76,7 +76,6 @@ export default function VirtualTryOnModal({ isOpen, onClose, product }) {
 
     setOverlayImg(null);
     const img = new Image();
-    img.crossOrigin = 'anonymous'; // Bypasses CORS for external CDN images
     img.src = product.image;
     img.onload = () => {
       setOverlayImg(img);
