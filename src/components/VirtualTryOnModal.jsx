@@ -98,7 +98,11 @@ export default function VirtualTryOnModal({ isOpen, onClose, product }) {
   const [scriptsLoaded, setScriptsLoaded] = useState(false);
   const [loadingModel, setLoadingModel] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
-  const [overlayImg, setOverlayImg] = useState(null);
+  const [loadedAssets, setLoadedAssets] = useState({
+    necklace: null,
+    leftEarring: null,
+    rightEarring: null
+  });
   
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -161,51 +165,113 @@ export default function VirtualTryOnModal({ isOpen, onClose, product }) {
     };
   }, [isOpen]);
 
-  // Phase 2: Load the transparent try-on image (custom PNG if provided, otherwise fallback to SVG template)
+  // Phase 2: Load the transparent try-on images (custom PNGs if provided, otherwise fallback to SVG templates)
   useEffect(() => {
     if (!product || !isOpen) return;
 
-    setOverlayImg(null);
+    setLoadedAssets({ necklace: null, leftEarring: null, rightEarring: null });
     setErrorMsg('');
 
-    // If you have specified a custom transparent PNG for this product, load it directly!
-    if (product.tryOnImage) {
-      const img = new Image();
-      img.src = product.tryOnImage;
-      img.onload = () => {
-        setOverlayImg(img);
-      };
-      img.onerror = () => {
-        console.error("Failed to load custom transparent PNG Try-On image:", product.tryOnImage);
-        setErrorMsg("Failed to load product preview image.");
-      };
-      return;
-    }
-
-    // Fallback: Compile the matching transparent SVG try-on vector asset based on product keywords
-    const titleLower = (product.title || "").toLowerCase();
-    let selectedSvg = goldChokerSvg; // Default gold necklace
-
-    if (titleLower.includes('earring') || titleLower.includes('jhumka') || titleLower.includes('stud') || titleLower.includes('dangler') || titleLower.includes('combo')) {
-      selectedSvg = jhumkaSvg;
-    } else if (titleLower.includes('pendant') || titleLower.includes('chain') || titleLower.includes('locket')) {
-      selectedSvg = pendantChainSvg;
-    }
-
-    const img = new Image();
-    img.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(selectedSvg);
-    img.onload = () => {
-      setOverlayImg(img);
+    const loadImage = (src) => {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.src = src;
+        img.onload = () => resolve(img);
+        img.onerror = (e) => reject(e);
+      });
     };
-    img.onerror = () => {
-      console.error("Failed to compile SVG Try-On asset.");
-      setErrorMsg("Failed to initialize virtual preview asset.");
+
+    const loadAllAssets = async () => {
+      try {
+        const assets = { necklace: null, leftEarring: null, rightEarring: null };
+        const promises = [];
+
+        // Check if custom PNGs are specified
+        if (product.tryOnImage || product.tryOnImageLeft || product.tryOnImageRight) {
+          if (product.tryOnImage) {
+            promises.push(
+              loadImage(product.tryOnImage)
+                .then(img => { assets.necklace = img; })
+                .catch(err => {
+                  console.error("Failed to load tryOnImage:", err);
+                  throw new Error("Failed to load necklace image.");
+                })
+            );
+          }
+          if (product.tryOnImageLeft) {
+            promises.push(
+              loadImage(product.tryOnImageLeft)
+                .then(img => { assets.leftEarring = img; })
+                .catch(err => {
+                  console.error("Failed to load tryOnImageLeft:", err);
+                  throw new Error("Failed to load left earring image.");
+                })
+            );
+          }
+          if (product.tryOnImageRight) {
+            promises.push(
+              loadImage(product.tryOnImageRight)
+                .then(img => { assets.rightEarring = img; })
+                .catch(err => {
+                  console.error("Failed to load tryOnImageRight:", err);
+                  throw new Error("Failed to load right earring image.");
+                })
+            );
+          }
+          
+          await Promise.all(promises);
+          setLoadedAssets(assets);
+          return;
+        }
+
+        // Fallback: compile fallback SVG vectors
+        const titleLower = (product.title || "").toLowerCase();
+        
+        // Check if it's a set/combo containing both necklace and earrings
+        const hasNecklaceKeywords = titleLower.includes('necklace') || titleLower.includes('chain') || titleLower.includes('pendant') || titleLower.includes('choker') || titleLower.includes('locket');
+        const hasEarringKeywords = titleLower.includes('earring') || titleLower.includes('jhumka') || titleLower.includes('stud') || titleLower.includes('dangler') || titleLower.includes('jhumkas');
+        const isSet = titleLower.includes('set') || titleLower.includes('combo');
+
+        if (isSet && hasNecklaceKeywords && hasEarringKeywords) {
+          // Load both necklace and earring SVGs
+          const necklaceSvg = titleLower.includes('pendant') || titleLower.includes('chain') ? pendantChainSvg : goldChokerSvg;
+          const leftEarringPromise = loadImage('data:image/svg+xml;utf8,' + encodeURIComponent(jhumkaSvg))
+            .then(img => { assets.leftEarring = img; });
+          const rightEarringPromise = loadImage('data:image/svg+xml;utf8,' + encodeURIComponent(jhumkaSvg))
+            .then(img => { assets.rightEarring = img; });
+          const necklacePromise = loadImage('data:image/svg+xml;utf8,' + encodeURIComponent(necklaceSvg))
+            .then(img => { assets.necklace = img; });
+            
+          await Promise.all([necklacePromise, leftEarringPromise, rightEarringPromise]);
+        } else if (hasEarringKeywords) {
+          // Just earrings
+          const leftEarringPromise = loadImage('data:image/svg+xml;utf8,' + encodeURIComponent(jhumkaSvg))
+            .then(img => { assets.leftEarring = img; });
+          const rightEarringPromise = loadImage('data:image/svg+xml;utf8,' + encodeURIComponent(jhumkaSvg))
+            .then(img => { assets.rightEarring = img; });
+          await Promise.all([leftEarringPromise, rightEarringPromise]);
+        } else {
+          // Just necklace
+          const necklaceSvg = titleLower.includes('pendant') || titleLower.includes('chain') ? pendantChainSvg : goldChokerSvg;
+          const necklacePromise = loadImage('data:image/svg+xml;utf8,' + encodeURIComponent(necklaceSvg))
+            .then(img => { assets.necklace = img; });
+          await Promise.all([necklacePromise]);
+        }
+
+        setLoadedAssets(assets);
+      } catch (err) {
+        console.error("Error loading try-on assets:", err);
+        setErrorMsg(err.message || "Failed to load product preview images.");
+      }
     };
+
+    loadAllAssets();
   }, [product, isOpen]);
 
   // Phase 3: Setup webcam, media streams, and FaceMesh model
   useEffect(() => {
-    if (!isOpen || !scriptsLoaded || !overlayImg || !videoRef.current || !canvasRef.current) return;
+    const hasAssets = loadedAssets.necklace || loadedAssets.leftEarring || loadedAssets.rightEarring;
+    if (!isOpen || !scriptsLoaded || !hasAssets || !videoRef.current || !canvasRef.current) return;
 
     let active = true;
     let cameraInstance = null;
@@ -251,33 +317,47 @@ export default function VirtualTryOnModal({ isOpen, onClose, product }) {
           if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
             const landmarks = results.multiFaceLandmarks[0];
 
-            // Determine overlay placement based on product details
-            const titleLower = (product.title || "").toLowerCase();
-            const isEarring = titleLower.includes('earring') || 
-                              titleLower.includes('jhumka') || 
-                              titleLower.includes('stud') || 
-                              titleLower.includes('dangler') ||
-                              titleLower.includes('combo'); // earrings or combos
-
             // Earlobe bounding landmarks for distance scale
             const leftEarBoundary = landmarks[234];
             const rightEarBoundary = landmarks[454];
             const faceWidth = Math.hypot(rightEarBoundary.x - leftEarBoundary.x, rightEarBoundary.y - leftEarBoundary.y) * w;
 
-            if (isEarring) {
-              // Earrings: Draw on Left Earlobe (Landmark 177) and Right Earlobe (Landmark 401)
+            // Draw Left Earring
+            if (loadedAssets.leftEarring) {
               const lEarlobe = landmarks[177];
-              const rEarlobe = landmarks[401];
-
               const earringSize = faceWidth * 0.22; // Scale size relative to face width
-              const aspect = overlayImg.height / overlayImg.width;
+              const aspect = loadedAssets.leftEarring.height / loadedAssets.leftEarring.width;
               const earringHeight = earringSize * aspect;
 
-              // Draw both earrings, centered horizontally and hanging down vertically
-              canvasCtx.drawImage(overlayImg, lEarlobe.x * w - earringSize / 2, lEarlobe.y * h, earringSize, earringHeight);
-              canvasCtx.drawImage(overlayImg, rEarlobe.x * w - earringSize / 2, rEarlobe.y * h, earringSize, earringHeight);
-            } else {
-              // Necklace / Chain: Extrapolate coordinates below Chin (Landmark 152)
+              // Draw left earring, centered horizontally and hanging down vertically
+              canvasCtx.drawImage(
+                loadedAssets.leftEarring, 
+                lEarlobe.x * w - earringSize / 2, 
+                lEarlobe.y * h, 
+                earringSize, 
+                earringHeight
+              );
+            }
+
+            // Draw Right Earring
+            if (loadedAssets.rightEarring) {
+              const rEarlobe = landmarks[401];
+              const earringSize = faceWidth * 0.22; // Scale size relative to face width
+              const aspect = loadedAssets.rightEarring.height / loadedAssets.rightEarring.width;
+              const earringHeight = earringSize * aspect;
+
+              // Draw right earring, centered horizontally and hanging down vertically
+              canvasCtx.drawImage(
+                loadedAssets.rightEarring, 
+                rEarlobe.x * w - earringSize / 2, 
+                rEarlobe.y * h, 
+                earringSize, 
+                earringHeight
+              );
+            }
+
+            // Draw Necklace
+            if (loadedAssets.necklace) {
               const chin = landmarks[152];
               const nose = landmarks[1];
 
@@ -289,12 +369,12 @@ export default function VirtualTryOnModal({ isOpen, onClose, product }) {
               const neckY = (chin.y + dy * 0.42) * h;
 
               const necklaceWidth = faceWidth * 1.3;
-              const aspect = overlayImg.height / overlayImg.width;
+              const aspect = loadedAssets.necklace.height / loadedAssets.necklace.width;
               const necklaceHeight = necklaceWidth * aspect;
 
               // Center the necklace on the neck line
               canvasCtx.drawImage(
-                overlayImg,
+                loadedAssets.necklace,
                 neckX - necklaceWidth / 2,
                 neckY - necklaceHeight * 0.15,
                 necklaceWidth,
@@ -361,7 +441,7 @@ export default function VirtualTryOnModal({ isOpen, onClose, product }) {
         }
       }
     };
-  }, [isOpen, scriptsLoaded, overlayImg, product]);
+  }, [isOpen, scriptsLoaded, loadedAssets, product]);
 
   return (
     <AnimatePresence>
@@ -448,9 +528,9 @@ export default function VirtualTryOnModal({ isOpen, onClose, product }) {
             {/* Instructions Footer */}
             <div className="px-6 py-4 bg-white border-t border-gold/15 text-center">
               <p className="text-[10px] uppercase tracking-wider text-dark-grey/60 font-light">
-                {product?.title?.toLowerCase().includes('earring') || 
-                 product?.title?.toLowerCase().includes('jhumka') ||
-                 product?.title?.toLowerCase().includes('combo')
+                {loadedAssets.necklace && (loadedAssets.leftEarring || loadedAssets.rightEarring)
+                  ? "Position your face clearly. The necklace set will align to your neck and ears."
+                  : (loadedAssets.leftEarring || loadedAssets.rightEarring)
                   ? "Position your face clearly. The earrings will align to your ears."
                   : "Position your face & neck clearly. The necklace will align to your collar line."}
               </p>

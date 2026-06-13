@@ -13,7 +13,10 @@ export const products = [
     "description": "Twinkling Glittering Women Necklaces & Chains",
     "price": "₹358",
     "image": "https://images.meesho.com/images/catalogs/403919628/cover/1/2/3a35e3eb14639c9387788abf80cc46e29e8a233ff9a823125441eb80c15b137cceeb38a425d501464894a9c99399c2b65b930b20bdd4422bda6671b85cf647c8_512.jpg",
-    "meeshoLink": "https://www.meesho.com/royal-gold-plated-red-stone-necklace-set-with-matching-jhumkas-traditional-kundan-style-ethnic-jewelry-for-women-girls-perfect-for-wedding-festive-occasion/p/ds51s7"
+    "meeshoLink": "https://www.meesho.com/royal-gold-plated-red-stone-necklace-set-with-matching-jhumkas-traditional-kundan-style-ethnic-jewelry-for-women-girls-perfect-for-wedding-festive-occasion/p/ds51s7",
+    "tryOnImage": "/assets/tryon_necklace_403919628.png",
+    "tryOnImageLeft": "/assets/tryon_earring_left_403919628.png",
+    "tryOnImageRight": "/assets/tryon_earring_right_403919628.png"
   },
   {
     "id": 358879313,
