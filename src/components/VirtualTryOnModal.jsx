@@ -181,6 +181,33 @@ export default function VirtualTryOnModal({ isOpen, onClose, product }) {
       });
     };
 
+    const removeWhiteBackground = (img) => {
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      try {
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+        // Loop through pixels: each pixel has 4 channels (r, g, b, a)
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i];
+          const g = data[i + 1];
+          const b = data[i + 2];
+          // Check if pixel is close to white (threshold 240)
+          if (r > 240 && g > 240 && b > 240) {
+            data[i + 3] = 0; // Set alpha to 0 (make transparent)
+          }
+        }
+        ctx.putImageData(imageData, 0, 0);
+        return canvas; // Return processed canvas which drawImage can render directly
+      } catch (e) {
+        console.warn("Could not remove white background due to canvas error, using original:", e);
+        return img;
+      }
+    };
+
     const loadAllAssets = async () => {
       try {
         const assets = { necklace: null, leftEarring: null, rightEarring: null };
@@ -191,7 +218,7 @@ export default function VirtualTryOnModal({ isOpen, onClose, product }) {
           if (product.tryOnImage) {
             promises.push(
               loadImage(product.tryOnImage)
-                .then(img => { assets.necklace = img; })
+                .then(img => { assets.necklace = removeWhiteBackground(img); })
                 .catch(err => {
                   console.error("Failed to load tryOnImage:", err);
                   throw new Error("Failed to load necklace image.");
@@ -201,7 +228,7 @@ export default function VirtualTryOnModal({ isOpen, onClose, product }) {
           if (product.tryOnImageLeft) {
             promises.push(
               loadImage(product.tryOnImageLeft)
-                .then(img => { assets.leftEarring = img; })
+                .then(img => { assets.leftEarring = removeWhiteBackground(img); })
                 .catch(err => {
                   console.error("Failed to load tryOnImageLeft:", err);
                   throw new Error("Failed to load left earring image.");
@@ -211,7 +238,7 @@ export default function VirtualTryOnModal({ isOpen, onClose, product }) {
           if (product.tryOnImageRight) {
             promises.push(
               loadImage(product.tryOnImageRight)
-                .then(img => { assets.rightEarring = img; })
+                .then(img => { assets.rightEarring = removeWhiteBackground(img); })
                 .catch(err => {
                   console.error("Failed to load tryOnImageRight:", err);
                   throw new Error("Failed to load right earring image.");
