@@ -5,7 +5,8 @@ export const products = [
     "description": "Elite Glittering Women Necklaces & Chains",
     "price": "₹359",
     "image": "https://images.meesho.com/images/catalogs/300178929/cover/1/2/960bdc022f34a875747bda0d38c0fadd3d0fa4243bd54875e795f303337407ae505b5750d33f1d74350eed7c24343356aff36bdd918fcde063f584f9e5bb3e2d_512.jpg",
-    "meeshoLink": "https://www.meesho.com/elegant-teardrop-red-stone-pendant-necklace-set-stylish-silver-finish-crystal-jewelry-for-women-girls-perfect-for-party-formal-wear/p/boxwfv"
+    "meeshoLink": "https://www.meesho.com/elegant-teardrop-red-stone-pendant-necklace-set-stylish-silver-finish-crystal-jewelry-for-women-girls-perfect-for-party-formal-wear/p/boxwfv",
+    "tryOnImage": "/assets/tryon_necklace_300178929.png"
   },
   {
     "id": 403919628,
